@@ -6,5 +6,33 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
+# Setting the seed in order to have the same results for every trial
+set.seed(1331)
+library(boot) #for boot and boot.ci
+```
+
+```{r}
+n <- 20 #sample size
+x <- rnorm(n, mean=0) #Generate samples from rnorm
+x <- as.matrix(x) 
+alpha <- c(0.05, 0.95)
+
+# function to compute the sample mean
+theta.boot <- function(dat, i){
+  mean(dat[i]) #Computing sample mean
+}
+
+boot.obj <- boot(x, statistic=theta.boot, R=2000)
+
+#calculations for bootstrap confidence intervals
+
+#normal
+print(boot.obj$t0 + qnorm(alpha)*sd(boot.obj$t))
+
+#basic
+print(2*boot.obj$t0 - quantile(boot.obj$t, rev(alpha), type=1))
+
+#percentile
+print(quantile(boot.obj$t,alpha, type=6))
 
 ```
