@@ -1,0 +1,10 @@
+---
+title: "312_Project_2"
+author: "Kenneth Cho"
+date: "11/21/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+```
