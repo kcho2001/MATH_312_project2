@@ -1,38 +1,109 @@
 ---
 title: "312_Project_2"
-author: "Kenneth Cho"
+author: "Kenneth Cho, Thomas Liu, and Andrew MacCausland"
 date: "11/21/2021"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-# Setting the seed in order to have the same results for every trial
+```{r}
 set.seed(1331)
-library(boot) #for boot and boot.ci
+library('boot')
+```
+
+
+```{r}
+# this function will return the ci object for 1 sample
+get_ci <- function(){
+  # generate 20 samples from standard normal
+  stdnormal <- rnorm(20)
+  # calculate the ci object
+  boot.obj <- boot(stdnormal, R=2000, statistic=function(x, i){mean(x[i])})
+} 
+```
+
+
+```{r}
+norm_miss <- 0
+basic_miss <- 0
+perc_miss <- 0
+# calculate coverage rate, run 1000 times
+for (i in 1:1000){
+  boot.obj = get_ci()
+  intervals <- boot.ci(boot.obj, type = c("norm", "basic", "perc"))
+  norm_min <- intervals$normal[2]
+  norm_max <- intervals$normal[3]
+  basic_min <- intervals$basic[4]
+  basic_max <- intervals$basic[5]
+  perc_min <- intervals$percent[4]
+  perc_max <- intervals$percent[5]
+  
+  # get misses
+  if(0 < norm_min | 0 > norm_max){
+    norm_miss <- norm_miss + 1
+  }
+  if(0 < basic_min | 0 > basic_max){
+    basic_miss <- basic_miss + 1
+  }
+  if(0 < perc_min | 0 > perc_max){
+    perc_miss <- perc_miss + 1
+  }
+}
+cat("coverage rate for standard normal ci: ", 100 - norm_miss / 10, "%\n")
+cat("coverage rate for basic ci: ", 100 - basic_miss / 10, "%\n")
+cat("coverage rate for percentile ci: ", 100 - perc_miss / 10, "%\n")
+
 ```
 
 ```{r}
-n <- 20 #sample size
-x <- rnorm(n, mean=0) #Generate samples from rnorm
-x <- as.matrix(x) 
-alpha <- c(0.05, 0.95)
-
-# function to compute the sample mean
-theta.boot <- function(dat, i){
-  mean(dat[i]) #Computing sample mean
+# modify the loop above a bit to get the proportions of times that the 
+# confidence intervals miss on the left, and the proportion of times
+# that the confidence intervals miss on the right
+norm_miss_L <- 0
+basic_miss_L <- 0
+perc_miss_L <- 0
+norm_miss_R <- 0
+basic_miss_R <- 0
+perc_miss_R <- 0
+# calculate coverage rate, run 1000 times
+for (i in 1:1000){
+  boot.obj = get_ci()
+  intervals <- boot.ci(boot.obj, type = c("norm", "basic", "perc"))
+  norm_min <- intervals$normal[2]
+  norm_max <- intervals$normal[3]
+  basic_min <- intervals$basic[4]
+  basic_max <- intervals$basic[5]
+  perc_min <- intervals$percent[4]
+  perc_max <- intervals$percent[5]
+  
+  # get misses
+  if(0 < norm_min){
+    norm_miss_L <- norm_miss_L + 1
+  }
+  if(0 < basic_min){
+    basic_miss_L <- basic_miss_L + 1
+  }
+  if(0 < perc_min){
+    perc_miss_L <- perc_miss_L + 1
+  }
+  if(0 > norm_max){
+    norm_miss_R <- norm_miss_R + 1
+  }
+  if(0 > basic_max){
+    basic_miss_R <- basic_miss_R + 1
+  }
+  if(0 > perc_max){
+    perc_miss_R <- perc_miss_R + 1
+  }
 }
+print("normal")
+print(norm_miss_L)
+print(norm_miss_R)
 
-boot.obj <- boot(x, statistic=theta.boot, R=2000)
+print("basic")
+print(basic_miss_L)
+print(basic_miss_R)
 
-#calculations for bootstrap confidence intervals
-
-#normal
-print(boot.obj$t0 + qnorm(alpha)*sd(boot.obj$t))
-
-#basic
-print(2*boot.obj$t0 - quantile(boot.obj$t, rev(alpha), type=1))
-
-#percentile
-print(quantile(boot.obj$t,alpha, type=6))
-
+print("perc")
+print(perc_miss_L)
+print(perc_miss_R)
 ```
