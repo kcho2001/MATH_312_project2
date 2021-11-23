@@ -6,7 +6,6 @@ output: pdf_document
 ---
 
 ```{r}
-set.seed(1331)
 library('boot')
 ```
 
@@ -23,6 +22,7 @@ get_ci <- function(){
 
 
 ```{r}
+set.seed(1331)
 norm_miss <- 0
 basic_miss <- 0
 perc_miss <- 0
@@ -64,6 +64,7 @@ perc_miss_L <- 0
 norm_miss_R <- 0
 basic_miss_R <- 0
 perc_miss_R <- 0
+set.seed(1331)
 # calculate coverage rate, run 1000 times
 for (i in 1:1000){
   boot.obj = get_ci()
